@@ -4,3 +4,4 @@ job-agent.db
 .venv/
 .env
 *.docx
+.aider*

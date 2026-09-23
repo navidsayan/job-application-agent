@@ -29,6 +29,22 @@ python3 -m job_agent.web --db job-agent.db --port 8765
 
 Then open http://127.0.0.1:8765. The dashboard shows queued matches, scores, matching reasons, and an explicit approval action.
 
+## Use the local coding agent
+
+The repository includes a local Aider launcher that uses Ollama and does not require Copilot, Cline, or cloud API credits:
+
+```bash
+./local-agent.sh
+```
+
+You can pass files or a starting instruction directly:
+
+```bash
+./local-agent.sh job_agent/pipeline.py
+```
+
+The default model is `ollama/qwen2.5-coder:7b`. Set `AIDER_MODEL` to use another model already installed in Ollama.
+
 Applications are stored in `job-agent.db` with status `review`. The browser submitter refuses to run unless a reviewer explicitly approves an application. Add compliant ATS/API sources through the `JobSource` protocol; avoid scraping or automating sites in ways that violate their terms.
 
 The next integration points are:
