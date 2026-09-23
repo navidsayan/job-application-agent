@@ -11,6 +11,16 @@ python3 -m job_agent.cli review
 python3 -m job_agent.cli approve acme-backend-001
 ```
 
+Generate local AI drafts for a reviewed job with Ollama:
+
+```bash
+python3 -m job_agent.cli tailor acme-backend-001 \
+	--resume resume.example.json \
+	--jobs jobs.example.json
+```
+
+This uses the local `qwen2.5-coder:7b` model by default and saves a factual resume focus and cover-letter draft to the review record. It does not submit applications.
+
 ## Open the review dashboard
 
 ```bash

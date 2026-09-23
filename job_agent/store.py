@@ -48,6 +48,23 @@ class ApplicationStore:
                 (application.job.id, json.dumps(payload), application.status.value),
             )
 
+    def save_materials(self, job_id: str, resume_focus: str, cover_letter: str) -> bool:
+        """Attach generated drafts to an existing application review record."""
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM applications WHERE job_id = ?", (job_id,)
+            ).fetchone()
+            if not row:
+                return False
+            payload = json.loads(row[0])
+            payload["tailored_resume"] = resume_focus
+            payload["cover_letter"] = cover_letter
+            result = connection.execute(
+                "UPDATE applications SET payload = ? WHERE job_id = ?",
+                (json.dumps(payload), job_id),
+            )
+        return result.rowcount == 1
+
     def list_reviews(self) -> list[dict]:
         """Return all applications waiting for human review."""
         with self._connect() as connection:
