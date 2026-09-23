@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+job-agent.db
+.venv/
+.env
+*.docx

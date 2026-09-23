@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Job Application Review</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Job Application Review home">
+        <span class="brand-mark">JA</span>
+        <span>Job Application Review</span>
+      </a>
+      <div class="connection"><span class="pulse"></span> Local workspace</div>
+    </header>
+
+    <main class="shell">
+      <section class="intro">
+        <div>
+          <p class="eyebrow">Human review queue</p>
+          <h1>Find the roles worth your time.</h1>
+          <p class="lede">Review matched opportunities, inspect why they fit, and approve the ones ready for tailoring.</p>
+        </div>
+        <button class="refresh-button" id="refresh-button" type="button">Refresh queue</button>
+      </section>
+
+      <section class="summary" aria-label="Queue summary">
+        <div class="summary-item"><span class="summary-label">Awaiting review</span><strong id="review-count">--</strong></div>
+        <div class="summary-item"><span class="summary-label">Strongest match</span><strong id="top-score">--</strong></div>
+        <div class="summary-item"><span class="summary-label">Sources</span><strong id="source-count">--</strong></div>
+      </section>
+
+      <section class="queue-heading">
+        <div>
+          <p class="eyebrow">Prioritized matches</p>
+          <h2>Your queue</h2>
+        </div>
+        <span class="last-updated" id="last-updated">Waiting for queue</span>
+      </section>
+
+      <div id="feedback" class="feedback" role="status" hidden></div>
+      <section id="job-list" class="job-list" aria-live="polite"></section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "acme-backend-001",
+    "title": "Backend Engineer",
+    "company": "Acme",
+    "location": "Remote - United States",
+    "description": "Build Python services and data systems.",
+    "url": "https://example.com/jobs/acme-backend-001",
+    "source": "company-careers",
+    "required_skills": ["Python"],
+    "preferred_skills": ["Postgres", "Docker"],
+    "min_years_experience": 3,
+    "remote": true
+  }
+]
