@@ -1,0 +1,10 @@
+# Local coding-agent rules
+
+- Use the local Ollama provider only. Do not use cloud providers or API credits.
+- Use qwen2.5-coder:7b unless the user explicitly selects another local model.
+- Work one feature at a time.
+- Read the relevant files before editing.
+- Make the smallest focused change and run targeted tests immediately afterward.
+- Do not submit job applications automatically; keep human approval required.
+- Do not commit secrets, credentials, databases, resume documents, or generated caches.
+- Before committing, run the relevant tests and inspect git status.
