@@ -32,12 +32,70 @@
         <div class="summary-item"><span class="summary-label">Sources</span><strong id="source-count">--</strong></div>
       </section>
 
+      <section class="discovery-panel" aria-labelledby="discovery-title">
+        <div>
+          <p class="eyebrow">Live discovery</p>
+          <h2 id="discovery-title">Find new roles</h2>
+          <p class="panel-copy">Fetch published listings from a compliant public job feed.</p>
+        </div>
+        <form id="discovery-form" class="discovery-form">
+          <label>Source
+            <select id="discovery-source">
+              <option value="all-public">All public sources</option>
+              <option value="arbeitnow">Arbeitnow</option>
+              <option value="remotive">Remotive</option>
+              <option value="greenhouse">Greenhouse</option>
+              <option value="lever">Lever</option>
+              <option value="ashby">Ashby</option>
+              <option value="smartrecruiters">SmartRecruiters</option>
+              <option value="recruitee">Recruitee</option>
+              <option value="json">Local JSON fixture</option>
+            </select>
+          </label>
+          <label id="board-field">Board slug
+            <input id="source-identifier" required placeholder="e.g. stripe">
+          </label>
+          <button class="fetch-button" type="submit">Fetch listings</button>
+        </form>
+      </section>
+
       <section class="queue-heading">
         <div>
           <p class="eyebrow">Prioritized matches</p>
           <h2>Your queue</h2>
         </div>
         <span class="last-updated" id="last-updated">Waiting for queue</span>
+      </section>
+
+      <section class="queue-tools" aria-label="Queue filters">
+        <label class="search-field">
+          <span class="sr-only">Search jobs</span>
+          <input id="search-input" type="search" placeholder="Search title, company, or skill">
+        </label>
+        <label class="select-field">
+          <span class="sr-only">Filter by source</span>
+          <select id="source-filter">
+            <option value="all">All sources</option>
+          </select>
+        </label>
+        <label class="select-field">
+          <span class="sr-only">Minimum match score</span>
+          <select id="score-filter">
+            <option value="0">Any score</option>
+            <option value="0.75">75% or higher</option>
+            <option value="0.85">85% or higher</option>
+          </select>
+        </label>
+        <label class="select-field">
+          <span class="sr-only">Sort jobs by</span>
+          <select id="sort-select">
+            <option value="score">Highest match</option>
+            <option value="title">Title A-Z</option>
+            <option value="company">Company A-Z</option>
+            <option value="source">Source A-Z</option>
+          </select>
+        </label>
+        <span class="filter-count" id="filter-count"></span>
       </section>
 
       <div id="feedback" class="feedback" role="status" hidden></div>

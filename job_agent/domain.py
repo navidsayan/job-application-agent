@@ -108,12 +108,21 @@ def match_job(resume: Resume, job: Job) -> MatchResult:
         score -= 0.05
 
     reasons = []
+    title_matches = any(
+        normalize(title) in normalize(job.title) or normalize(job.title) in normalize(title)
+        for title in resume.preferred_titles
+    )
+    if title_matches:
+        score += 0.05
+        reasons.append("Matches a preferred job title")
     if matched_required:
         reasons.append(f"Matches required skills: {', '.join(sorted(matched_required))}")
     if missing_required:
         reasons.append(f"Missing required skills: {', '.join(sorted(missing_required))}")
     if resume.years_experience < job.min_years_experience:
         reasons.append("Below the stated experience requirement")
+    if not location_matches and not job.remote:
+        reasons.append("Outside preferred locations")
 
     return MatchResult(
         job_id=job.id,

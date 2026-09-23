@@ -1,28 +1,56 @@
 from __future__ import annotations
 
 import argparse
-import json
-from pathlib import Path
-
-from .domain import Resume
-from .pipeline import discover_once
-from .sources import JsonJobSource
+from .pipeline import discover_once, run_forever
+from .resume import load_resume
+from .sources import (
+    AshbyJobSource,
+    CompositeSource,
+    GreenhouseJobSource,
+    JsonJobSource,
+    LeverJobSource,
+    RecruiteeJobSource,
+    SmartRecruitersJobSource,
+    ArbeitnowJobSource,
+    RemotiveJobSource,
+)
 from .store import ApplicationStore
 from .tailoring import OllamaClient, tailor_application
 
 
-def load_resume(path: str) -> Resume:
-    """Load the candidate profile JSON into the matching model."""
-    record = json.loads(Path(path).read_text(encoding="utf-8"))
-    return Resume(
-        name=record["name"],
-        summary=record.get("summary", ""),
-        skills=frozenset(record.get("skills", [])),
-        years_experience=float(record.get("years_experience", 0)),
-        preferred_titles=tuple(record.get("preferred_titles", [])),
-        preferred_locations=tuple(record.get("preferred_locations", [])),
-        work_authorization=record.get("work_authorization"),
-    )
+def build_job_source(args: argparse.Namespace):
+    """Build configured fixture and public ATS sources for discovery."""
+    sources = []
+    if args.jobs:
+        sources.append(JsonJobSource(args.jobs))
+    if args.greenhouse_board:
+        sources.append(GreenhouseJobSource(args.greenhouse_board))
+    if args.lever_site:
+        sources.append(LeverJobSource(args.lever_site))
+    if args.ashby_board:
+        sources.append(AshbyJobSource(args.ashby_board))
+    if args.smartrecruiters_company:
+        sources.append(SmartRecruitersJobSource(args.smartrecruiters_company))
+    if args.recruitee_company:
+        sources.append(RecruiteeJobSource(args.recruitee_company))
+    if args.arbeitnow:
+        sources.append(ArbeitnowJobSource())
+    if args.remotive:
+        sources.append(RemotiveJobSource())
+    if not sources:
+        raise ValueError("Configure at least one job source")
+    return CompositeSource(sources)
+
+
+def add_source_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--jobs")
+    parser.add_argument("--greenhouse-board")
+    parser.add_argument("--lever-site")
+    parser.add_argument("--ashby-board")
+    parser.add_argument("--smartrecruiters-company")
+    parser.add_argument("--recruitee-company")
+    parser.add_argument("--arbeitnow", action="store_true")
+    parser.add_argument("--remotive", action="store_true")
 
 
 def main() -> None:
@@ -32,8 +60,14 @@ def main() -> None:
 
     discover_parser = subparsers.add_parser("discover")
     discover_parser.add_argument("--resume", required=True)
-    discover_parser.add_argument("--jobs", required=True)
+    add_source_arguments(discover_parser)
     discover_parser.add_argument("--db", default="job-agent.db")
+
+    watch_parser = subparsers.add_parser("watch")
+    watch_parser.add_argument("--resume", required=True)
+    add_source_arguments(watch_parser)
+    watch_parser.add_argument("--db", default="job-agent.db")
+    watch_parser.add_argument("--interval", type=int, default=1800)
 
     review_parser = subparsers.add_parser("review")
     review_parser.add_argument("--db", default="job-agent.db")
@@ -41,6 +75,10 @@ def main() -> None:
     approve_parser = subparsers.add_parser("approve")
     approve_parser.add_argument("job_id")
     approve_parser.add_argument("--db", default="job-agent.db")
+
+    reject_parser = subparsers.add_parser("reject")
+    reject_parser.add_argument("job_id")
+    reject_parser.add_argument("--db", default="job-agent.db")
 
     tailor_parser = subparsers.add_parser("tailor")
     tailor_parser.add_argument("job_id")
@@ -52,10 +90,16 @@ def main() -> None:
 
     args = parser.parse_args()
     store = ApplicationStore(args.db)
-    if args.command == "discover":
-        applications = discover_once(
-            load_resume(args.resume), JsonJobSource(args.jobs), store
-        )
+    if args.command in {"discover", "watch"}:
+        try:
+            source = build_job_source(args)
+        except ValueError as error:
+            parser.error(str(error))
+        resume = load_resume(args.resume)
+        if args.command == "watch":
+            run_forever(resume, source, store, args.interval)
+            return
+        applications = discover_once(resume, source, store)
         for application in applications:
             print(f"{application.job.id}: {application.job.title} at {application.job.company} ({application.match.score:.0%})")
     elif args.command == "review":
@@ -66,6 +110,10 @@ def main() -> None:
         if not store.approve(args.job_id):
             parser.error(f"No review application found for {args.job_id!r}")
         print(f"Approved {args.job_id}")
+    elif args.command == "reject":
+        if not store.reject(args.job_id):
+            parser.error(f"No review application found for {args.job_id!r}")
+        print(f"Rejected {args.job_id}")
     elif args.command == "tailor":
         job = next((job for job in JsonJobSource(args.jobs).fetch() if job.id == args.job_id), None)
         if not job:

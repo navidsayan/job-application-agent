@@ -31,6 +31,18 @@ class MatchingTests(unittest.TestCase):
         self.assertFalse(result.is_good_match)
         self.assertEqual(result.missing_required_skills, frozenset({"go"}))
 
+    def test_preferred_title_and_location_are_explained(self) -> None:
+        resume = Resume(
+            "Ada", "engineer", frozenset({"Python"}), 5,
+            preferred_titles=("Backend Engineer",), preferred_locations=("Toronto",),
+        )
+        job = Job("title", "Senior Backend Engineer", "Acme", "Toronto", "", "url", "test")
+
+        result = match_job(resume, job)
+
+        self.assertIn("Matches a preferred job title", result.reasons)
+        self.assertNotIn("Outside preferred locations", result.reasons)
+
     def test_tailoring_accepts_structured_local_model_output(self) -> None:
         resume = Resume("Ada", "engineer", frozenset({"Python"}), 5)
         job = Job("3", "Backend Engineer", "Acme", "Remote", "Build services", "url", "test")

@@ -65,14 +65,23 @@ class ApplicationStore:
             )
         return result.rowcount == 1
 
+    def list_applications(self, status: str | None = None) -> list[dict]:
+        """Return persisted applications, optionally filtered by status."""
+        with self._connect() as connection:
+            if status:
+                rows = connection.execute(
+                    "SELECT job_id, payload, status FROM applications WHERE status = ? ORDER BY job_id",
+                    (status,),
+                ).fetchall()
+            else:
+                rows = connection.execute(
+                    "SELECT job_id, payload, status FROM applications ORDER BY job_id"
+                ).fetchall()
+        return [{"job_id": job_id, "status": status, **json.loads(payload)} for job_id, payload, status in rows]
+
     def list_reviews(self) -> list[dict]:
         """Return all applications waiting for human review."""
-        with self._connect() as connection:
-            rows = connection.execute(
-                "SELECT job_id, payload, status FROM applications WHERE status = ? ORDER BY job_id",
-                (ApplicationStatus.REVIEW.value,),
-            ).fetchall()
-        return [{"job_id": job_id, "status": status, **json.loads(payload)} for job_id, payload, status in rows]
+        return self.list_applications(ApplicationStatus.REVIEW.value)
 
     def approve(self, job_id: str) -> bool:
         """Move one review item to approved, returning whether it was updated."""
@@ -80,6 +89,15 @@ class ApplicationStore:
             result = connection.execute(
                 "UPDATE applications SET status = ? WHERE job_id = ? AND status = ?",
                 (ApplicationStatus.APPROVED.value, job_id, ApplicationStatus.REVIEW.value),
+            )
+        return result.rowcount == 1
+
+    def reject(self, job_id: str) -> bool:
+        """Move one review item out of the queue without submitting it."""
+        with self._connect() as connection:
+            result = connection.execute(
+                "UPDATE applications SET status = ? WHERE job_id = ? AND status = ?",
+                (ApplicationStatus.REJECTED.value, job_id, ApplicationStatus.REVIEW.value),
             )
         return result.rowcount == 1
 
